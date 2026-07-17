@@ -1,0 +1,39 @@
+{
+  "name": "thinkflow-resi-app",
+  "version": "1.0.0",
+  "description": "Think Flow Desktop App with Receipt Print Studio",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win"
+  },
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^28.2.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.thinkflow.resi",
+    "productName": "ThinkFlowResi",
+    "files": [
+      "index.html",
+      "main.js",
+      "images/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "ThinkFlowResi"
+    }
+  }
+}
