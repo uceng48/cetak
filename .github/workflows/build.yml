@@ -9,7 +9,7 @@ on:
     branches:
       - main
       - master
-  workflow_dispatch: # Memungkinkan Anda memicu proses build secara manual dari halaman web GitHub
+  workflow_dispatch:
 
 jobs:
   build:
@@ -17,28 +17,23 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # Langkah 1: Mengunduh/Clone kode dari repository GitHub Anda
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Langkah 2: Menyiapkan lingkungan Node.js di komputer virtual GitHub
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 24 # 1. Diperbarui ke Node 24 sesuai rekomendasi sistem GitHub Actions terbaru
+          # 2. Baris cache: 'npm' dihapus agar tidak terjadi error jika package-lock.json belum di-commit
 
-      # Langkah 3: Menginstal semua dependensi yang tertera pada package.json
       - name: Install Dependencies
         run: npm install
 
-      # Langkah 4: Menjalankan proses kompilasi electron-builder ke file .exe
       - name: Build Windows Executable
         run: npm run build:win
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Disediakan otomatis oleh GitHub Actions untuk keperluan build
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Langkah 5: Mengunggah file .exe hasil build agar bisa diunduh langsung di tab Actions
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
