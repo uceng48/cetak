@@ -1467,12 +1467,12 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
             display: flex;
             flex-wrap: wrap;
-            align-content: flex-start; /* Tetap rapat ke atas */
-            justify-content: flex-start; /* Tetap rapat ke kiri */
+            align-content: flex-start;
+            justify-content: flex-start;
             align-items: flex-start;
             position: relative;
             flex-shrink: 0;
-            padding: 5mm !important; /* Memberikan batas aman 0.5 cm (5 mm) di setiap sisi */
+            padding: 5mm !important;
             gap: 0 !important;
             margin: 0 auto 24px auto;
         }
@@ -1720,16 +1720,16 @@
                 flex-direction: column !important;
                 width: 100% !important;
             }
-          .paper-page {
+            .paper-page {
                 box-shadow: none !important;
                 margin: 0 auto !important;
                 border: none !important;
                 background: white !important;
                 display: flex !important;
-                justify-content: flex-start !important; /* Tetap rapat ke kiri */
-                align-content: flex-start !important; /* Tetap rapat ke atas */
+                justify-content: flex-start !important;
+                align-content: flex-start !important;
                 align-items: flex-start !important;
-                padding: 5mm !important; /* Batas aman 0.5 cm (5 mm) saat diprint */
+                padding: 5mm !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
@@ -2112,7 +2112,6 @@
                         <input type="number" id="custH" value="297" style="width:50px"> mm
                     </span>
                 </div>
-                <!-- Menggunakan triggerPrint() untuk menjamin perekaman data berjalan di semua device sebelum dialog print dibuka -->
                 <button class="print-btn" onclick="triggerPrint()">CETAK</button>
             </div>
         </header>
@@ -2456,7 +2455,6 @@
                 if (!conns.find(c => c.peer === conn.peer)) {
                     conns.push(conn);
                     updatePeerList();
-                    playSound('conn-sound');
                     showToast('⚡ Terhubung: ' + conn.peer);
                     savePeerList();
                 }
@@ -2555,7 +2553,6 @@
             if (!input.files.length || activeJobIdx === null || activeJobIdx >= jobs.length) return;
             const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
             for (const file of input.files) {
-                // Periksa apakah PDF
                 const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
                 if (file.size > MAX_SIZE) {
                     showToast(`⚠️ "${file.name}" > 5 MB`, 'error');
@@ -2668,7 +2665,6 @@
                 return;
             }
 
-            playSound('done-sound');
             addMessageToHistory({
                 type: 'out',
                 sender: chat_myId,
@@ -2707,7 +2703,6 @@
         // ===== RECEIVE DATA =====
         function handleData(data, from) {
             if (data && data.type === 'data' && data.jobs) {
-                playSound('notif-sound');
                 addMessageToHistory({
                     type: 'in',
                     sender: from,
@@ -2758,15 +2753,12 @@
                 area.removeChild(children[i]);
             }
 
-            // Filter berdasarkan search
             let filtered = messageHistory;
             if (searchQuery.trim()) {
                 const q = searchQuery.trim().toLowerCase();
                 filtered = messageHistory.filter(msg => {
-                    // Cari di sender
                     if (msg.sender && msg.sender.toLowerCase().includes(q)) return true;
                     if (msg.type === 'out' && 'Anda'.includes(q)) return true;
-                    // Cari di jobs
                     if (msg.jobs) {
                         for (const job of msg.jobs) {
                             if (job.inv && job.inv.toLowerCase().includes(q)) return true;
@@ -2788,13 +2780,11 @@
                 el.id = 'empty-state';
                 el.textContent = searchQuery.trim() ? '🔍 Tidak ada pesan yang cocok.' : '📭 Belum ada data. Hubungkan ke partner dan kirim data dari bawah.';
                 area.appendChild(el);
-                document.getElementById('msg-count').textContent = searchQuery.trim() ? filtered.length : messageHistory
-                .length;
+                document.getElementById('msg-count').textContent = searchQuery.trim() ? filtered.length : messageHistory.length;
                 return;
             }
 
             document.getElementById('msg-count').textContent = searchQuery.trim() ? filtered.length : messageHistory.length;
-
             const sorted = [...filtered].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
             sorted.forEach(msg => {
@@ -2813,16 +2803,13 @@
             if (msg.jobs && msg.jobs.length) {
                 msg.jobs.forEach(job => {
                     bodyHtml += `<div style="margin-bottom:4px;">`;
-                    if (job.inv) bodyHtml +=
-                        `<div style="font-weight:700;color:var(--whatsapp-dark);margin-bottom:1px;">INV: ${escapeHtml(job.inv)}</div>`;
-                    if (job.ket) bodyHtml +=
-                        `<div style="color:#333;font-size:0.75rem;margin-bottom:2px;">${escapeHtml(job.ket).replace(/\n/g,'<br>')}</div>`;
+                    if (job.inv) bodyHtml += `<div style="font-weight:700;color:var(--whatsapp-dark);margin-bottom:1px;">INV: ${escapeHtml(job.inv)}</div>`;
+                    if (job.ket) bodyHtml += `<div style="color:#333;font-size:0.75rem;margin-bottom:2px;">${escapeHtml(job.ket).replace(/\n/g,'<br>')}</div>`;
                     if (job.files && job.files.length) {
                         job.files.forEach(f => {
                             const isPdf = f.isPdf || (f.name && f.name.toLowerCase().endsWith('.pdf'));
                             if (f.type && f.type.startsWith('image/')) {
-                                bodyHtml +=
-                                    `<img src="${f.data}" style="max-width:100%;border-radius:6px;margin-top:4px;cursor:pointer;" onclick="downloadFile('${f.data}','${escapeHtml(f.name)}')">`;
+                                bodyHtml += `<img src="${f.data}" style="max-width:100%;border-radius:6px;margin-top:4px;cursor:pointer;" onclick="downloadFile('${f.data}','${escapeHtml(f.name)}')">`;
                             } else if (isPdf) {
                                 bodyHtml += `
                                         <div class="file-box" onclick="downloadFile('${f.data}','${escapeHtml(f.name)}')">
@@ -2834,8 +2821,7 @@
                                         </div>
                                     `;
                             } else {
-                                bodyHtml +=
-                                    `<div class="file-box" onclick="downloadFile('${f.data}','${escapeHtml(f.name)}')"><span style="font-size:1.1rem;">📄</span><div><div style="font-weight:600;font-size:0.7rem;">${escapeHtml(f.name)}</div><div style="font-size:0.55rem;color:var(--text-secondary);">Klik unduh</div></div></div>`;
+                                bodyHtml += `<div class="file-box" onclick="downloadFile('${f.data}','${escapeHtml(f.name)}')"><span style="font-size:1.1rem;">📄</span><div><div style="font-weight:600;font-size:0.7rem;">${escapeHtml(f.name)}</div><div style="font-size:0.55rem;color:var(--text-secondary);">Klik unduh</div></div></div>`;
                             }
                         });
                     }
@@ -2926,7 +2912,6 @@
                 return;
             }
 
-            // Group by date
             const groups = {};
             const sorted = [...messageHistory].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
             sorted.forEach(msg => {
@@ -2958,12 +2943,9 @@
                     `;
                 group.messages.forEach(msg => {
                     const card = createMessageCard(msg);
-                    // clone untuk modal, hapus tombol forward dll biar bersih
                     const clone = card.cloneNode(true);
-                    // Hapus actions agar lebih rapi
                     const actions = clone.querySelector('.actions');
                     if (actions) actions.remove();
-                    // Hapus forward dropdown
                     const fwd = clone.querySelector('.forward-dropdown');
                     if (fwd) fwd.remove();
                     html += clone.outerHTML;
@@ -3180,7 +3162,6 @@
             });
             if (sentCount === 0) return showToast('❌ Gagal kirim ulang', 'error');
 
-            playSound('done-sound');
             showToast('... Dikirim ulang ke ' + sentCount + ' partner');
             const copy = { ...msg, type: 'out', sender: chat_myId, time: now(), timestamp: Date.now(), id: payload.id,
                 resent: true, forwarded: false, _uid: ++msgIdCounter };
@@ -3191,31 +3172,24 @@
         // ===== DETEKSI ORDER ID SECARA AKURAT (marketplace Indonesia) =====
         function extractOrderId(text, fileName = '') {
             if (!text) return null;
-
-            // Bersihkan spasi berlebih untuk mendeteksi teks yang renggang
             const cleanText = text.replace(/\s+/g, '');
 
-            // 1. Shopee standard (14 digit alfanumerik), contoh: 260630FHKE9S8W
             const shopeeRegex = /\b\d{6}[A-Z0-9]{8}\b/;
             let match = text.match(shopeeRegex) || cleanText.match(shopeeRegex);
             if (match) return match[0];
 
-            // 2. Tokopedia Invoice (INV/YYYYMMDD/...)
             const topoRegex = /INV\/\d{8}\/[A-Z0-9]+\/\d+/i;
             match = text.match(topoRegex) || cleanText.match(topoRegex);
             if (match) return match[0].toUpperCase();
 
-            // 3. TikTok Shop (19 digit angka dimulai dengan 5)
             const tiktokRegex = /\b5\d{18}\b/;
             match = text.match(tiktokRegex) || cleanText.match(tiktokRegex);
             if (match) return match[0];
 
-            // 4. Lazada atau umum (15 digit angka)
             const lazadaRegex = /\b\d{15}\b/;
             match = text.match(lazadaRegex) || cleanText.match(lazadaRegex);
             if (match) return match[0];
 
-            // 5. Pencarian berbasis kata kunci (misal: "No. Pesanan: XXX" atau "No Pesanan XXX")
             const generalRegex = /(?:No\s*Pesanan|No\.\s*Pesanan|Pesanan|No\s*Transaksi|No\s*Invoice|No\s*Resi|Nomor\s*Pemesanan|Order\s*ID|Invoice\s*No)\s*[:#\-]?\s*([A-Z0-9/\-]+)/i;
             match = text.match(generalRegex);
             if (match && match[1]) {
@@ -3223,7 +3197,6 @@
                 if (id.length >= 8) return id.toUpperCase();
             }
 
-            // 6. Fallback mendeteksi angka panjang dari nama file
             if (fileName) {
                 const fileMatch = fileName.match(/\d{10,20}/);
                 if (fileMatch) return fileMatch[0];
@@ -3278,7 +3251,6 @@
 
             try {
                 conn.send(payload);
-                playSound('done-sound');
                 showToast('📤 Diteruskan ke ' + targetPeer);
                 const copy = { ...msg, type: 'out', sender: chat_myId, time: now(), timestamp: Date.now(), id: payload.id,
                     resent: false, forwarded: true, originalSender: msg.sender || msg.originalSender || chat_myId,
@@ -3380,7 +3352,7 @@
         let cetak_imageData = [];
         let cetak_assetList = [];
         let cetak_uploadedImages = [];
-        let cetak_uploadedHistory = []; // Registri memori global untuk menyimpan semua resi yang pernah diupload dalam sesi ini
+        let cetak_uploadedHistory = [];
         const PAPER_SIZES = { 'A4': [210, 297], 'A3': [297, 420], 'A3+': [329, 483] };
         const imageFilenames = [
             'AESTETiC.jpg', 'ASTRONOT.jpg', 'AVATAR.jpg', 'BE-POSITIVE.jpg', 'BEACH.jpg', 'BT21.jpg',
@@ -3439,7 +3411,6 @@
         function updateBadge() {
             document.getElementById('resiBadge').innerText = cetak_resiData.length;
             
-            // Hitung dan update badge total pada tab HISTORI
             const history = JSON.parse(localStorage.getItem('resi_print_history') || '[]');
             const historyBadge = document.getElementById('historyBadge');
             if (historyBadge) {
@@ -3459,14 +3430,13 @@
             return PAPER_SIZES[val] || [210, 297];
         }
 
-   function renderResi() {
+        function renderResi() {
             const container = document.getElementById('canvas-resi');
             container.innerHTML = '';
             const [pW, pH] = getPaperDim();
             const rW = parseInt(document.getElementById('resiWidthNum').value);
             const rH = parseInt(document.getElementById('resiHeightNum').value);
             
-            // Kurangi 10mm (batas aman 5mm x 2 sisi) agar kalkulasi kolom & baris akurat
             const pW_safe = pW - 10;
             const pH_safe = pH - 10;
             
@@ -3485,7 +3455,7 @@
                 page.style.alignContent = 'flex-start';
                 page.style.justifyContent = 'flex-start';
                 page.style.alignItems = 'flex-start';
-                page.style.padding = '5mm'; // Terapkan padding batas aman 0.5 cm
+                page.style.padding = '5mm';
                 page.style.gap = '0';
 
                 cetak_resiData.slice(i * perPage, (i + 1) * perPage).forEach(item => {
@@ -3616,15 +3586,13 @@
             updateCetakUI();
         }
 
-        // ===== TAMBAH RESI DENGAN ANTI-DUPLIKAT ORDER ID (KANVAS & HISTORY) =====
+        // ===== TAMBAH RESI =====
         function addResi(src, name = 'Resi', orderId = null, isDirectClickFromHistory = false) {
-            // 1. Cek apakah resi sudah aktif di Kanvas
             const inCanvas = cetak_resiData.some(item => {
                 if (orderId && item.orderId && item.orderId === orderId) return true;
                 return item.src === src;
             });
 
-            // 2. Cek apakah resi terdaftar di Hasil Upload Lama (hanya dicheck jika bukan klik langsung dari thumbnail list upload lama)
             const inHistory = !isDirectClickFromHistory && cetak_uploadedHistory.some(item => {
                 if (orderId && item.orderId && item.orderId === orderId) return true;
                 return item.src === src;
@@ -3655,7 +3623,7 @@
             return true;
         }
 
-        // ===== PDF Upload dengan Ekstraksi Teks =====
+        // ===== PDF Upload =====
         const trimCanvas = (canvas) => {
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
             const w = canvas.width,
@@ -3690,7 +3658,6 @@
             return trimmed;
         };
 
-        // Event listener saat upload file PDF resi
         document.getElementById('pdfInp').onchange = async (e) => {
             const files = Array.from(e.target.files);
             for (let f of files) {
@@ -3698,7 +3665,6 @@
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     
-                    // Ekstraksi teks dari PDF secara langsung
                     let orderId = null;
                     try {
                         const textContent = await page.getTextContent();
@@ -3717,7 +3683,6 @@
                     const src = trimmedCanvas.toDataURL('image/jpeg', 0.9);
                     
                     const pageName = f.name + ' P' + i;
-                    // Kirim orderId hasil ekstraksi ke addResi untuk pengecekan duplikat
                     const added = addResi(src, pageName, orderId);
                     if (added) addToHistory(pageName, src, orderId);
                 }
@@ -3726,7 +3691,6 @@
         };
 
         function addToHistory(name, src, orderId = null) {
-            // Daftarkan ke dalam list upload lama global jika belum ada
             const alreadyInRegistry = cetak_uploadedHistory.some(item => {
                 if (orderId && item.orderId && item.orderId === orderId) return true;
                 return item.src === src;
@@ -3739,7 +3703,6 @@
             div.className = 'history-item';
             div.setAttribute('data-order-id', orderId || '');
             div.innerHTML = `<img src="${src}"><div>${name}${orderId ? '<br><span style="color:#075E54;font-weight:bold;font-size:7px;">' + orderId + '</span>' : ''}</div>`;
-            // isDirectClickFromHistory diset ke 'true' karena diklik langsung dari menu history upload sidebar
             div.onclick = () => { addResi(src, name, orderId, true); };
             document.getElementById('resiHistory').prepend(div);
         }
@@ -3853,20 +3816,29 @@
             });
         }
 
+        // ===== FIX ASINKRONUS ROTATE ASSET (MENGGUNAKAN ONLOAD) =====
         function rotateAsset(idx) {
             const img = new Image();
+            
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.height;
+                canvas.height = img.width;
+                const ctx = canvas.getContext('2d');
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(90 * Math.PI / 180);
+                ctx.drawImage(img, -img.width / 2, -img.height / 2);
+                
+                cetak_assetList[idx].dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                renderAssets();
+            };
+
+            img.onerror = function() {
+                console.error("Gagal memuat gambar untuk rotasi.");
+                showToast("❌ Gagal memuat gambar untuk rotasi.", "error");
+            };
+
             img.src = cetak_assetList[idx].dataUrl;
-            img.decode().catch(() => {});
-            if (!img.width || !img.height) return;
-            const canvas = document.createElement('canvas');
-            canvas.width = img.height;
-            canvas.height = img.width;
-            const ctx = canvas.getContext('2d');
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.rotate(90 * Math.PI / 180);
-            ctx.drawImage(img, -img.width / 2, -img.height / 2);
-            cetak_assetList[idx].dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-            renderAssets();
         }
 
         function addAssetToCanvas(idx) {
@@ -3881,7 +3853,7 @@
             updateCetakUI();
         }
 
-        // ===== Chat Images UI di modul cetak =====
+        // ===== Chat Images UI =====
         function updateChatImagesUI() {
             const container = document.getElementById('chatImagesContainer');
             const countEl = document.getElementById('chatImageCount');
@@ -3916,7 +3888,7 @@
             showToast('✅ Gambar ditambahkan ke canvas cetak.');
         }
 
-        // ===== HELPER FORMAT TANGGAL YANG KONSISTEN (Kunci format dd/mm/yyyy) =====
+        // ===== HELPER HISTORI =====
         function formatDateID(timestamp) {
             const d = new Date(timestamp);
             const day = String(d.getDate()).padStart(2, '0');
@@ -3925,19 +3897,15 @@
             return `${day}/${month}/${year}`;
         }
 
-        // ===== FUNGSI PEMICU CETAK BROWSER & PENYIMPANAN RIWAYAT LOKAL =====
         function triggerPrint() {
-            // Rekam histori cetak resi terlebih dahulu sebelum jendela cetak browser aktif
             if (document.getElementById('module-cetak').classList.contains('active')) {
                 if (cetak_currentMode === 'resi' && cetak_resiData.length > 0) {
                     saveResiPrintHistory();
                 }
             }
-            // Buka dialog cetak browser bawaan
             window.print();
         }
 
-        // ===== PEREKAMAN HISTORI CETAK RESI =====
         let _printSaving = false;
         let _lastPrintHash = '';
         let _lastPrintTime = 0;
@@ -3962,11 +3930,9 @@
             const paperType = document.getElementById('paperType').value;
             const paperLabel = paperType === 'custom' ? `Karso (${pW}x${pH}mm)` : `${paperType} (${pW}x${pH}mm)`;
 
-            // Buat hash unik dari data cetak
             const hash = `${totalResi}_${perPage}_${pW}_${pH}_${rW}_${rH}`;
             const now = Date.now();
 
-            // Cek apakah hash sama dengan yang terakhir dicatat (dalam 5 detik)
             if (hash === _lastPrintHash && (now - _lastPrintTime) < 5000) {
                 _printSaving = false;
                 return;
@@ -3984,7 +3950,6 @@
             };
 
             let history = JSON.parse(localStorage.getItem('resi_print_history') || '[]');
-            // Cegah duplikat dengan membandingkan entri terakhir
             if (history.length > 0 && history[0].totalResi === totalResi && (now - history[0].id) < 3000) {
                 _printSaving = false;
                 return;
@@ -3994,7 +3959,6 @@
             localStorage.setItem('resi_print_history', JSON.stringify(history));
             renderPrintHistory();
 
-            // Simpan hash dan waktu untuk pengecekan berikutnya
             _lastPrintHash = hash;
             _lastPrintTime = now;
 
