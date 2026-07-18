@@ -15,7 +15,7 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* ===== RESET & VARIABEL (SAMA SEPERTI SEBELUMNYA) ===== */
+        /* ===== RESET & VARIABEL ===== */
         :root {
             --whatsapp-green: #25D366;
             --whatsapp-dark: #075E54;
@@ -102,7 +102,7 @@
             display: flex;
         }
 
-        /* Login screen (di dalam chat) */
+        /* Login screen */
         #chat-login-screen {
             position: absolute;
             inset: 0;
@@ -340,7 +340,7 @@
             transform: scale(0.95);
         }
 
-        /* ===== SEARCH BAR ===== */
+        /* Search bar */
         .chat-search-area {
             padding: 6px 12px;
             background: white;
@@ -614,7 +614,6 @@
             color: var(--text-secondary);
             font-size: 0.85rem;
         }
-        /* pesan tersembunyi saat search */
         .chat-messages .msg-card.hidden-by-search {
             display: none !important;
         }
@@ -1401,12 +1400,36 @@
             text-align: center;
             border: 1px solid var(--border-light);
             color: var(--text-primary);
+            position: relative;
         }
         .history-item img {
             width: 100%;
             aspect-ratio: 1;
             object-fit: cover;
         }
+        .history-item .del-history {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(220, 38, 38, 0.85);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 11px;
+            cursor: pointer;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: 0.15s;
+        }
+        .history-item .del-history:active {
+            transform: scale(0.9);
+        }
+
         .history-log-card {
             background: #F0F2F5;
             border: 1px solid var(--border-light);
@@ -1957,7 +1980,6 @@
             }
         }
 
-        /* PDF badge pada file di chat */
         .pdf-badge {
             background: #ef4444;
             color: white;
@@ -1966,6 +1988,52 @@
             font-size: 0.5rem;
             font-weight: 700;
             margin-left: 4px;
+        }
+
+        /* ===== RESI TOOLBAR ===== */
+        .resi-toolbar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .resi-toolbar .btn-sm {
+            border: none;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 10px;
+            cursor: pointer;
+            transition: 0.15s;
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+        }
+        .resi-toolbar .btn-sm:active {
+            transform: scale(0.95);
+        }
+        .resi-toolbar .btn-sm.danger {
+            background: #ef4444;
+            color: white;
+        }
+        .resi-toolbar .btn-sm.danger:hover {
+            background: #dc2626;
+        }
+        .resi-toolbar .btn-sm.warning {
+            background: #f59e0b;
+            color: white;
+        }
+        .resi-toolbar .btn-sm.warning:hover {
+            background: #d97706;
+        }
+        .resi-toolbar .btn-sm.outline {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+        }
+        .resi-toolbar .btn-sm.outline:hover {
+            background: #F0F2F5;
         }
     </style>
 </head>
@@ -2012,13 +2080,11 @@
                         </div>
                     </div>
 
-                    <!-- Connect area -->
                     <div class="chat-connect-area">
                         <input type="text" id="target-id" class="input" placeholder="ID partner...">
                         <button class="btn" onclick="connectPeer()">Hubung</button>
                     </div>
 
-                    <!-- ===== SEARCH BAR ===== -->
                     <div class="chat-search-area">
                         <span class="search-icon">🔍</span>
                         <input type="text" id="chat-search-input" class="input" placeholder="Cari pesan..." oninput="applySearchFilter()">
@@ -2136,6 +2202,13 @@
                 <!-- Tab Resi -->
                 <div id="cetak-tab-resi" class="cetak-tab-content active">
                     <div class="cetak-sidebar-scroll">
+                        <!-- ===== TOOLBAR HAPUS RESI ===== -->
+                        <div class="resi-toolbar">
+                            <button class="btn-sm danger" onclick="clearAllResi()">🗑 Hapus Semua Resi (Canvas)</button>
+                            <button class="btn-sm warning" onclick="clearAllResiHistory()">🗑 Hapus Semua Upload</button>
+                            <button class="btn-sm outline" onclick="document.getElementById('pdfInp').click()">📄 + Upload PDF</button>
+                        </div>
+
                         <div class="slider-group">
                             <label>Lebar Resi (mm)</label>
                             <div class="numeric-input">
@@ -2155,8 +2228,13 @@
                             <div>Total Item: <span id="resiTotal">0</span></div>
                         </div>
                         <br>
-                        <button class="btn-blue" style="width:100%" onclick="document.getElementById('pdfInp').click()">+ UPLOAD PDF RESI</button>
                         <input type="file" id="pdfInp" multiple accept="application/pdf" style="display:none">
+
+                        <!-- ===== RESI HISTORY LIST ===== -->
+                        <div class="asset-grid-title" style="border-top:2px solid #3b82f6; margin-top:8px;">
+                            📂 RESI HASIL UPLOAD
+                            <span id="resiHistoryCount" style="font-size:9px;color:var(--text-secondary);">0</span>
+                        </div>
                         <div id="resiHistory" class="history-list"></div>
                     </div>
                 </div>
@@ -2221,7 +2299,6 @@
                         </div>
                         <div id="assetGrid" class="asset-grid"></div>
 
-                        <!-- Gambar dari Chat -->
                         <div class="asset-grid-title" style="margin-top:16px; border-top:2px solid #3b82f6;">
                             📩 GAMBAR DARI CHAT
                             <span id="chatImageCount" style="font-size:9px;color:var(--text-secondary);">0</span>
@@ -2315,7 +2392,8 @@
                                                 id: Date.now() + Math.random(),
                                                 src: file.data,
                                                 name: file.name,
-                                                from: msg.type === 'out' ? 'Anda' : (msg.sender || 'Unknown'),
+                                                from: msg.type === 'out' ? 'Anda' : (msg.sender ||
+                                                    'Unknown'),
                                                 timestamp: msg.timestamp || Date.now()
                                             });
                                         }
@@ -2371,7 +2449,7 @@
             document.getElementById('chat-app').classList.add('active');
             document.getElementById('my-id').innerText = chat_myId;
             document.getElementById('my-avatar').innerText = chat_myId.charAt(0).toUpperCase();
-            initPeer(); // initPeer akan menangani reconnect saat peer terbuka
+            initPeer();
             renderJobs();
             loadMessageHistory();
             updatePeerList();
@@ -2379,7 +2457,6 @@
             if (saved) {
                 try { const parsed = JSON.parse(saved); if (parsed.length) jobs = parsed; renderJobs(); } catch (_) {}
             }
-            // HAPUS baris: reconnectSavedPeers(); karena sudah di dalam peer.on('open')
         }
         (function autoLogin() {
             const stored = localStorage.getItem('tfl_id');
@@ -2444,16 +2521,13 @@
                 conns = [];
             }
 
-            // ===== KONFIGURASI ICE DENGAN TURN SERVER =====
             const peerConfig = {
                 debug: 2,
                 config: {
                     iceServers: [
-                        // STUN (standar)
                         { urls: 'stun:stun.l.google.com:19302' },
                         { urls: 'stun:stun1.l.google.com:19302' },
-                        // TURN server publik gratis (Metered, tanpa otentikasi)
-                        { 
+                        {
                             urls: [
                                 'turn:openrelay.metered.ca:80',
                                 'turn:openrelay.metered.ca:443',
@@ -2462,14 +2536,13 @@
                             username: 'openrelayproject',
                             credential: 'openrelayproject'
                         },
-                        // TURN dari Numb (gratis, perlu username/credential)
                         {
                             urls: 'turn:numb.viagenie.ca:3478',
                             username: 'webrtc@live.com',
                             credential: 'muazkh'
                         }
                     ],
-                    iceTransportPolicy: 'all', // default
+                    iceTransportPolicy: 'all',
                     iceCandidatePoolSize: 10
                 }
             };
@@ -2479,7 +2552,7 @@
             peer.on('open', () => {
                 updateStatus('ready');
                 showToast('✅ Siap! ID: ' + chat_myId + ' (TURN aktif)');
-                reconnectSavedPeers(); // hanya dipanggil setelah peer terbuka
+                reconnectSavedPeers();
             });
 
             peer.on('connection', conn => setupConn(conn));
@@ -2827,6 +2900,7 @@
         // ===== RENDER CHAT HISTORY =====
         function renderMessageHistory() {
             const area = document.getElementById('stream-area');
+            if (!area) return;
             const empty = document.getElementById('empty-state');
             if (empty) empty.remove();
 
@@ -2863,11 +2937,13 @@
                 el.id = 'empty-state';
                 el.textContent = searchQuery.trim() ? '🔍 Tidak ada pesan yang cocok.' : '📭 Belum ada data. Hubungkan ke partner dan kirim data dari bawah.';
                 area.appendChild(el);
-                document.getElementById('msg-count').textContent = searchQuery.trim() ? filtered.length : messageHistory.length;
+                document.getElementById('msg-count').textContent = searchQuery.trim() ? filtered.length : messageHistory
+                    .length;
                 return;
             }
 
-            document.getElementById('msg-count').textContent = searchQuery.trim() ? filtered.length : messageHistory.length;
+            document.getElementById('msg-count').textContent = searchQuery.trim() ? filtered.length : messageHistory
+            .length;
             const sorted = [...filtered].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
             sorted.forEach(msg => {
@@ -2886,13 +2962,16 @@
             if (msg.jobs && msg.jobs.length) {
                 msg.jobs.forEach(job => {
                     bodyHtml += `<div style="margin-bottom:4px;">`;
-                    if (job.inv) bodyHtml += `<div style="font-weight:700;color:var(--whatsapp-dark);margin-bottom:1px;">INV: ${escapeHtml(job.inv)}</div>`;
-                    if (job.ket) bodyHtml += `<div style="color:#333;font-size:0.75rem;margin-bottom:2px;">${escapeHtml(job.ket).replace(/\n/g,'<br>')}</div>`;
+                    if (job.inv) bodyHtml +=
+                        `<div style="font-weight:700;color:var(--whatsapp-dark);margin-bottom:1px;">INV: ${escapeHtml(job.inv)}</div>`;
+                    if (job.ket) bodyHtml +=
+                        `<div style="color:#333;font-size:0.75rem;margin-bottom:2px;">${escapeHtml(job.ket).replace(/\n/g,'<br>')}</div>`;
                     if (job.files && job.files.length) {
                         job.files.forEach(f => {
                             const isPdf = f.isPdf || (f.name && f.name.toLowerCase().endsWith('.pdf'));
                             if (f.type && f.type.startsWith('image/')) {
-                                bodyHtml += `<img src="${f.data}" style="max-width:100%;border-radius:6px;margin-top:4px;cursor:pointer;" onclick="downloadFile('${f.data}','${escapeHtml(f.name)}')">`;
+                                bodyHtml +=
+                                    `<img src="${f.data}" style="max-width:100%;border-radius:6px;margin-top:4px;cursor:pointer;" onclick="downloadFile('${f.data}','${escapeHtml(f.name)}')">`;
                             } else if (isPdf) {
                                 bodyHtml += `
                                         <div class="file-box" onclick="downloadFile('${f.data}','${escapeHtml(f.name)}')">
@@ -2904,7 +2983,8 @@
                                         </div>
                                     `;
                             } else {
-                                bodyHtml += `<div class="file-box" onclick="downloadFile('${f.data}','${escapeHtml(f.name)}')"><span style="font-size:1.1rem;">📄</span><div><div style="font-weight:600;font-size:0.7rem;">${escapeHtml(f.name)}</div><div style="font-size:0.55rem;color:var(--text-secondary);">Klik unduh</div></div></div>`;
+                                bodyHtml +=
+                                    `<div class="file-box" onclick="downloadFile('${f.data}','${escapeHtml(f.name)}')"><span style="font-size:1.1rem;">📄</span><div><div style="font-weight:600;font-size:0.7rem;">${escapeHtml(f.name)}</div><div style="font-size:0.55rem;color:var(--text-secondary);">Klik unduh</div></div></div>`;
                             }
                         });
                     }
@@ -3121,7 +3201,8 @@
                 groups[dateStr].messages.push(msg);
             });
 
-            const sortedDates = Object.keys(groups).sort((a, b) => groups[a].dateObj.getTime() - groups[b].dateObj.getTime());
+            const sortedDates = Object.keys(groups).sort((a, b) => groups[a].dateObj.getTime() - groups[b].dateObj
+            .getTime());
 
             sortedDates.forEach(dateKey => {
                 const group = groups[dateKey];
@@ -3156,17 +3237,23 @@
                     if (msg.jobs && msg.jobs.length) {
                         msg.jobs.forEach(job => {
                             bodyHtml += `<div style="margin-bottom:4px;">`;
-                            if (job.inv) bodyHtml += `<div style="font-weight:700;color:#075E54;margin-bottom:1px;">INV: ${escapeHtml(job.inv)}</div>`;
-                            if (job.ket) bodyHtml += `<div style="color:#333;font-size:0.75rem;margin-bottom:2px;">${escapeHtml(job.ket).replace(/\n/g,'<br>')}</div>`;
+                            if (job.inv) bodyHtml +=
+                                `<div style="font-weight:700;color:#075E54;margin-bottom:1px;">INV: ${escapeHtml(job.inv)}</div>`;
+                            if (job.ket) bodyHtml +=
+                                `<div style="color:#333;font-size:0.75rem;margin-bottom:2px;">${escapeHtml(job.ket).replace(/\n/g,'<br>')}</div>`;
                             if (job.files && job.files.length) {
                                 job.files.forEach(f => {
-                                    const isPdf = f.isPdf || (f.name && f.name.toLowerCase().endsWith('.pdf'));
+                                    const isPdf = f.isPdf || (f.name && f.name.toLowerCase().endsWith(
+                                        '.pdf'));
                                     if (f.type && f.type.startsWith('image/')) {
-                                        bodyHtml += `<div style="margin-top:4px;">🖼️ ${escapeHtml(f.name)}</div>`;
+                                        bodyHtml +=
+                                            `<div style="margin-top:4px;">🖼️ ${escapeHtml(f.name)}</div>`;
                                     } else if (isPdf) {
-                                        bodyHtml += `<div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.04);padding:4px 8px;border-radius:6px;margin-top:4px;">📄 ${escapeHtml(f.name)} <span style="background:#ef4444;color:white;border-radius:4px;padding:1px 8px;font-size:0.5rem;font-weight:700;">PDF</span></div>`;
+                                        bodyHtml +=
+                                            `<div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.04);padding:4px 8px;border-radius:6px;margin-top:4px;">📄 ${escapeHtml(f.name)} <span style="background:#ef4444;color:white;border-radius:4px;padding:1px 8px;font-size:0.5rem;font-weight:700;">PDF</span></div>`;
                                     } else {
-                                        bodyHtml += `<div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.04);padding:4px 8px;border-radius:6px;margin-top:4px;">📄 ${escapeHtml(f.name)}</div>`;
+                                        bodyHtml +=
+                                            `<div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.04);padding:4px 8px;border-radius:6px;margin-top:4px;">📄 ${escapeHtml(f.name)}</div>`;
                                     }
                                 });
                             }
@@ -3245,7 +3332,7 @@
             });
             if (sentCount === 0) return showToast('❌ Gagal kirim ulang', 'error');
 
-            showToast('... Dikirim ulang ke ' + sentCount + ' partner');
+            showToast('↻ Dikirim ulang ke ' + sentCount + ' partner');
             const copy = { ...msg, type: 'out', sender: chat_myId, time: now(), timestamp: Date.now(), id: payload.id,
                 resent: true, forwarded: false, _uid: ++msgIdCounter };
             messageHistory.push(copy);
@@ -3253,7 +3340,7 @@
             saveMessageHistory();
         }
 
-        // ===== DETEKSI ORDER ID SECARA AKURAT (marketplace Indonesia) =====
+        // ===== DETEKSI ORDER ID =====
         function extractOrderId(text, fileName = '') {
             if (!text) return null;
             const cleanText = text.replace(/\s+/g, '');
@@ -3492,11 +3579,12 @@
             if (cetak_currentMode === 'image') renderImgMode();
             updateBadge();
             updateChatImagesUI();
+            renderResiHistory();
         }
 
         function updateBadge() {
             document.getElementById('resiBadge').innerText = cetak_resiData.length;
-            
+
             const history = JSON.parse(localStorage.getItem('resi_print_history') || '[]');
             const historyBadge = document.getElementById('historyBadge');
             if (historyBadge) {
@@ -3522,10 +3610,10 @@
             const [pW, pH] = getPaperDim();
             const rW = parseInt(document.getElementById('resiWidthNum').value);
             const rH = parseInt(document.getElementById('resiHeightNum').value);
-            
+
             const pW_safe = pW - 10;
             const pH_safe = pH - 10;
-            
+
             const cols = Math.floor(pW_safe / rW) || 1;
             const rows = Math.floor(pH_safe / rH) || 1;
             const perPage = cols * rows;
@@ -3551,7 +3639,7 @@
                     slot.style.height = rH + 'mm';
                     slot.style.flexShrink = '0';
                     slot.innerHTML =
-                    `<img src="${item.src}"><button class="delete-btn" onclick="deleteCetakItem(${item.id})">×</button>`;
+                        `<img src="${item.src}"><button class="delete-btn" onclick="deleteCetakItem(${item.id})">×</button>`;
                     page.appendChild(slot);
                 });
                 container.appendChild(page);
@@ -3672,6 +3760,69 @@
             updateCetakUI();
         }
 
+        // ===== CLEAR ALL RESI (canvas) =====
+        function clearAllResi() {
+            if (cetak_resiData.length === 0) {
+                showToast('⚠️ Tidak ada resi di canvas untuk dihapus.', 'error');
+                return;
+            }
+            if (!confirm('Hapus SEMUA resi dari canvas?')) return;
+            cetak_resiData = [];
+            updateCetakUI();
+            showToast('🗑️ Semua resi di canvas dihapus.');
+        }
+
+        // ===== CLEAR ALL RESI HISTORY (upload list) =====
+        function clearAllResiHistory() {
+            if (cetak_uploadedHistory.length === 0) {
+                showToast('⚠️ Tidak ada riwayat upload untuk dihapus.', 'error');
+                return;
+            }
+            if (!confirm('Hapus SEMUA riwayat upload resi?')) return;
+            cetak_uploadedHistory = [];
+            renderResiHistory();
+            updateCetakUI();
+            showToast('🗑️ Semua riwayat upload dihapus.');
+        }
+
+        // ===== DELETE SINGLE HISTORY ITEM =====
+        function deleteHistoryItemById(id) {
+            if (!confirm('Hapus item riwayat ini?')) return;
+            cetak_uploadedHistory = cetak_uploadedHistory.filter(item => item.id !== id);
+            renderResiHistory();
+            updateCetakUI();
+            showToast('🗑️ Item riwayat dihapus.');
+        }
+
+        // ===== RENDER RESI HISTORY =====
+        function renderResiHistory() {
+            const container = document.getElementById('resiHistory');
+            const countEl = document.getElementById('resiHistoryCount');
+            if (!container) return;
+
+            if (cetak_uploadedHistory.length === 0) {
+                container.innerHTML =
+                    '<div style="grid-column:span 2; text-align:center; color:var(--text-secondary); font-size:10px; padding:12px 0;">Belum ada upload resi.</div>';
+                if (countEl) countEl.innerText = '0';
+                return;
+            }
+
+            if (countEl) countEl.innerText = cetak_uploadedHistory.length;
+
+            container.innerHTML = cetak_uploadedHistory.map(item => {
+                const orderLabel = item.orderId ?
+                    `<br><span style="color:#075E54;font-weight:bold;font-size:7px;">📦 ${item.orderId}</span>` :
+                    '';
+                return `
+                        <div class="history-item" style="position:relative;">
+                            <button class="del-history" onclick="event.stopPropagation(); deleteHistoryItemById(${item.id})">×</button>
+                            <img src="${item.src}" onclick="addResi('${item.src}','${escapeHtml(item.name)}','${item.orderId||''}',true)">
+                            <div>${escapeHtml(item.name)}${orderLabel}</div>
+                        </div>
+                    `;
+            }).join('');
+        }
+
         // ===== TAMBAH RESI =====
         function addResi(src, name = 'Resi', orderId = null, isDirectClickFromHistory = false) {
             const inCanvas = cetak_resiData.some(item => {
@@ -3699,11 +3850,11 @@
                 if (!proceed) return false;
             }
 
-            cetak_resiData.push({ 
-                id: Date.now() + Math.random(), 
-                src, 
-                name, 
-                orderId 
+            cetak_resiData.push({
+                id: Date.now() + Math.random(),
+                src,
+                name,
+                orderId
             });
             updateCetakUI();
             return true;
@@ -3750,7 +3901,7 @@
                 const pdf = await pdfjsLib.getDocument({ data: await f.arrayBuffer() }).promise;
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
-                    
+
                     let orderId = null;
                     try {
                         const textContent = await page.getTextContent();
@@ -3767,30 +3918,26 @@
                     await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
                     const trimmedCanvas = trimCanvas(canvas);
                     const src = trimmedCanvas.toDataURL('image/jpeg', 0.9);
-                    
+
                     const pageName = f.name + ' P' + i;
                     const added = addResi(src, pageName, orderId);
-                    if (added) addToHistory(pageName, src, orderId);
+                    if (added) addToHistory(src, pageName, orderId);
                 }
             }
             updateCetakUI();
         };
 
-        function addToHistory(name, src, orderId = null) {
+        // ===== ADD TO HISTORY (dengan ID unik) =====
+        function addToHistory(src, name, orderId = null) {
             const alreadyInRegistry = cetak_uploadedHistory.some(item => {
                 if (orderId && item.orderId && item.orderId === orderId) return true;
                 return item.src === src;
             });
             if (!alreadyInRegistry) {
-                cetak_uploadedHistory.push({ name, src, orderId });
+                cetak_uploadedHistory.push({ id: Date.now() + Math.random(), name, src, orderId });
             }
-
-            const div = document.createElement('div');
-            div.className = 'history-item';
-            div.setAttribute('data-order-id', orderId || '');
-            div.innerHTML = `<img src="${src}"><div>${name}${orderId ? '<br><span style="color:#075E54;font-weight:bold;font-size:7px;">' + orderId + '</span>' : ''}</div>`;
-            div.onclick = () => { addResi(src, name, orderId, true); };
-            document.getElementById('resiHistory').prepend(div);
+            renderResiHistory();
+            updateCetakUI();
         }
 
         // ===== Image Upload =====
@@ -3876,7 +4023,7 @@
         function loadAssets() {
             const grid = document.getElementById('assetGrid');
             grid.innerHTML =
-            '<div style="grid-column:span 2; text-align:center; color:var(--text-secondary); font-size:11px;">Memuat gambar...</div>';
+                '<div style="grid-column:span 2; text-align:center; color:var(--text-secondary); font-size:11px;">Memuat gambar...</div>';
             cetak_assetList = imageFilenames.map(name => ({
                 id: Math.random(),
                 name: name,
@@ -3902,10 +4049,10 @@
             });
         }
 
-        // ===== FIX ASINKRONUS ROTATE ASSET (MENGGUNAKAN ONLOAD) =====
+        // ===== ROTATE ASSET =====
         function rotateAsset(idx) {
             const img = new Image();
-            
+
             img.onload = function() {
                 const canvas = document.createElement('canvas');
                 canvas.width = img.height;
@@ -3914,7 +4061,7 @@
                 ctx.translate(canvas.width / 2, canvas.height / 2);
                 ctx.rotate(90 * Math.PI / 180);
                 ctx.drawImage(img, -img.width / 2, -img.height / 2);
-                
+
                 cetak_assetList[idx].dataUrl = canvas.toDataURL('image/jpeg', 0.9);
                 renderAssets();
             };
@@ -3984,54 +4131,49 @@
         }
 
         // ============================================================
-        //  FIX CETAK GANDA UNTUK BUILD APP (.exe)
-        //  menggunakan flag + beforeprint/afterprint + timeout
+        //  FIX CETAK GANDA – menggunakan session ID unik
         // ============================================================
         let isPrinting = false;
         let printTimeout = null;
         let printLockTimer = null;
+        let currentPrintSessionId = null;   // <-- ID sesi cetak unik
 
         function triggerPrint() {
-            // Cegah jika sedang dalam proses cetak
             if (isPrinting) {
                 console.warn('⛔ Print sudah berjalan, abaikan.');
                 showToast('⏳ Proses cetak sedang berjalan...', 'error');
                 return;
             }
-
-            // Cegah klik cepat (debounce)
             if (printTimeout) {
                 console.warn('⛔ Terlalu cepat, abaikan.');
                 return;
             }
-
-            // Cegah jika ada lock timer (untuk keamanan tambahan)
             if (printLockTimer) {
                 return;
             }
+
+            // === GENERATE UNIK SESSION ID ===
+            currentPrintSessionId = Date.now();
 
             isPrinting = true;
             const printBtn = document.getElementById('printBtn');
             if (printBtn) printBtn.disabled = true;
 
-            // Simpan histori jika di tab resi dan ada data
             if (document.getElementById('module-cetak').classList.contains('active')) {
                 if (cetak_currentMode === 'resi' && cetak_resiData.length > 0) {
                     saveResiPrintHistory();
                 }
             }
 
-            // Debounce: tolak klik berikutnya dalam 800ms
             printTimeout = setTimeout(() => {
                 printTimeout = null;
             }, 800);
 
-            // Jalankan print
             window.print();
 
-            // Reset setelah print selesai (event afterprint)
             const resetPrint = () => {
                 isPrinting = false;
+                currentPrintSessionId = null;   // reset setelah selesai
                 if (printBtn) printBtn.disabled = false;
                 if (printTimeout) {
                     clearTimeout(printTimeout);
@@ -4044,14 +4186,12 @@
                 window.removeEventListener('afterprint', resetPrint);
             };
 
-            // afterprint didukung di semua browser modern
             window.addEventListener('afterprint', resetPrint);
 
-            // Fallback: reset setelah 5 detik jika afterprint tidak terpanggil
-            // (terjadi di beberapa lingkungan desktop seperti Electron/NW.js)
             printLockTimer = setTimeout(() => {
                 if (isPrinting) {
                     isPrinting = false;
+                    currentPrintSessionId = null;
                     if (printBtn) printBtn.disabled = false;
                     if (printTimeout) {
                         clearTimeout(printTimeout);
@@ -4063,8 +4203,6 @@
                 }
             }, 5000);
 
-            // Juga gunakan event beforeprint untuk mengunci (jika tersedia)
-            // Ini mencegah panggilan print kedua sebelum print pertama selesai
             const lockBeforePrint = () => {
                 isPrinting = true;
                 if (printBtn) printBtn.disabled = true;
@@ -4081,8 +4219,22 @@
             if (_printSaving) return;
             _printSaving = true;
 
+            const sessionId = currentPrintSessionId;
+            if (!sessionId) {
+                _printSaving = false;
+                return;
+            }
+
             const totalResi = cetak_resiData.length;
             if (totalResi === 0) {
+                _printSaving = false;
+                return;
+            }
+
+            // Ambil history yang sudah ada
+            let history = JSON.parse(localStorage.getItem('resi_print_history') || '[]');
+            // Cek duplikasi berdasarkan sessionId
+            if (history.some(item => item.id === sessionId)) {
                 _printSaving = false;
                 return;
             }
@@ -4097,18 +4249,12 @@
             const paperType = document.getElementById('paperType').value;
             const paperLabel = paperType === 'custom' ? `Karso (${pW}x${pH}mm)` : `${paperType} (${pW}x${pH}mm)`;
 
-            const hash = `${totalResi}_${perPage}_${pW}_${pH}_${rW}_${rH}`;
-            const now = Date.now();
-
-            if (hash === _lastPrintHash && (now - _lastPrintTime) < 5000) {
-                _printSaving = false;
-                return;
-            }
-
             const entry = {
-                id: now,
-                timestamp: new Date().toLocaleString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit',
-                    hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                id: sessionId,
+                timestamp: new Date().toLocaleString('id-ID', {
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                }),
                 totalResi: totalResi,
                 perPage: perPage,
                 totalPages: totalPages,
@@ -4116,20 +4262,11 @@
                 resiDim: `${rW}x${rH}mm`
             };
 
-            let history = JSON.parse(localStorage.getItem('resi_print_history') || '[]');
-            if (history.length > 0 && history[0].totalResi === totalResi && (now - history[0].id) < 3000) {
-                _printSaving = false;
-                return;
-            }
-
             history.unshift(entry);
             localStorage.setItem('resi_print_history', JSON.stringify(history));
             renderPrintHistory();
 
-            _lastPrintHash = hash;
-            _lastPrintTime = now;
-
-            setTimeout(() => { _printSaving = false; }, 1000);
+            _printSaving = false;
         }
 
         function renderPrintHistory() {
@@ -4371,6 +4508,16 @@
         renderPrintHistory();
         updateChatImagesUI();
         setTimeout(() => updateChatImagesUI(), 500);
+
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                renderMessageHistory();
+                const area = document.getElementById('stream-area');
+                if (area) area.scrollTop = area.scrollHeight;
+                updateChatImagesUI();
+                renderResiHistory();
+            }, 200);
+        });
 
         console.log('✅ Aplikasi terintegrasi dengan TURN, siap koneksi internet mandiri.');
     </script>
