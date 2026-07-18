@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Think Flow + Cetak Resi</title>
+    <title>Think Flow + Cetak Resi (Dengan TURN)</title>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js">
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js">
@@ -15,7 +15,7 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* ===== RESET & VARIABEL ===== */
+        /* ===== RESET & VARIABEL (SAMA SEPERTI SEBELUMNYA) ===== */
         :root {
             --whatsapp-green: #25D366;
             --whatsapp-dark: #075E54;
@@ -1983,10 +1983,10 @@
         <div id="chat-login-screen">
             <div class="login-box">
                 <div class="logo">💬 Think Flow</div>
-                <div class="sub">P2P Data Exchange</div>
+                <div class="sub">P2P Data Exchange (TURN enabled)</div>
                 <input type="text" id="login-name" class="input" placeholder="Masukkan nama / ID Anda..." value="">
                 <button class="btn" onclick="doLogin()">MASUK</button>
-                <div class="hint">Gunakan ID unik untuk terhubung dengan partner.</div>
+                <div class="hint">Gunakan ID unik untuk terhubung dengan partner. Koneksi bisa tembus NAT berkat TURN.</div>
             </div>
         </div>
 
@@ -2371,16 +2371,15 @@
             document.getElementById('chat-app').classList.add('active');
             document.getElementById('my-id').innerText = chat_myId;
             document.getElementById('my-avatar').innerText = chat_myId.charAt(0).toUpperCase();
-            initPeer();
+            initPeer(); // initPeer akan menangani reconnect saat peer terbuka
             renderJobs();
             loadMessageHistory();
             updatePeerList();
             const saved = sessionStorage.getItem('tfl_jobs');
             if (saved) {
-                try { const parsed = JSON.parse(saved); if (parsed.length) jobs = parsed;
-                    renderJobs(); } catch (_) {}
+                try { const parsed = JSON.parse(saved); if (parsed.length) jobs = parsed; renderJobs(); } catch (_) {}
             }
-            reconnectSavedPeers();
+            // HAPUS baris: reconnectSavedPeers(); karena sudah di dalam peer.on('open')
         }
         (function autoLogin() {
             const stored = localStorage.getItem('tfl_id');
@@ -2439,17 +2438,39 @@
 
         // ===== PeerJS =====
         function initPeer() {
-            if (peer) { peer.destroy();
+            if (peer) {
+                peer.destroy();
                 conns.forEach(c => c.close());
-                conns = []; }
+                conns = [];
+            }
 
+            // ===== KONFIGURASI ICE DENGAN TURN SERVER =====
             const peerConfig = {
                 debug: 2,
                 config: {
                     iceServers: [
+                        // STUN (standar)
                         { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' }
-                    ]
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        // TURN server publik gratis (Metered, tanpa otentikasi)
+                        { 
+                            urls: [
+                                'turn:openrelay.metered.ca:80',
+                                'turn:openrelay.metered.ca:443',
+                                'turn:openrelay.metered.ca:3478'
+                            ],
+                            username: 'openrelayproject',
+                            credential: 'openrelayproject'
+                        },
+                        // TURN dari Numb (gratis, perlu username/credential)
+                        {
+                            urls: 'turn:numb.viagenie.ca:3478',
+                            username: 'webrtc@live.com',
+                            credential: 'muazkh'
+                        }
+                    ],
+                    iceTransportPolicy: 'all', // default
+                    iceCandidatePoolSize: 10
                 }
             };
 
@@ -2457,8 +2478,8 @@
 
             peer.on('open', () => {
                 updateStatus('ready');
-                showToast('✅ Siap! ID: ' + chat_myId);
-                reconnectSavedPeers();
+                showToast('✅ Siap! ID: ' + chat_myId + ' (TURN aktif)');
+                reconnectSavedPeers(); // hanya dipanggil setelah peer terbuka
             });
 
             peer.on('connection', conn => setupConn(conn));
@@ -4351,7 +4372,7 @@
         updateChatImagesUI();
         setTimeout(() => updateChatImagesUI(), 500);
 
-        console.log('✅ Aplikasi terintegrasi siap pakai.');
+        console.log('✅ Aplikasi terintegrasi dengan TURN, siap koneksi internet mandiri.');
     </script>
 </body>
 </html>
